@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Achsmontage Tabelle</title>
+<style>
+body { font-family: Arial, sans-serif; }
+table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+th, td { border: 1px solid #000; padding: 4px; text-align: center; font-size: 12px; }
+th { background: #e6e6e6; }
+input { width: 100%; border: none; text-align: center; }
+.label { font-weight: bold; text-align: left; }
+.section { border-top: 3px solid black; }
+.small { font-size: 10px; }
+</style>
+</head>
+<body>
+
+<h3>Achsmontage / Prüfliste</h3>
+
+<!-- Kopfbereich -->
+<table>
+<tr>
+<td class="label">Maschine Modell</td>
+<td><input></td>
+<td class="label">Datum</td>
+<td><input type="date"></td>
+<td class="label">Geprüft von</td>
+<td><input></td>
+</tr>
+</table>
+
+<table>
+<thead>
+<tr>
+<th>Seriennummer Achse</th>
+<th>ITEM</th>
+<th>Abstandsmaß Planetenträger<br><span class="small">(V)</span></th>
+<th>Abstandsmaß Steckachse<br><span class="small">(X)</span></th>
+<th>Errechnete Scheibendicke<br><span class="small">(W)</span></th>
+<th>Verbaute Scheibendicke</th>
+<th>Axial-Spiel</th>
+<th>Anpressdrehkraft</th>
+<th>Markierung</th>
+<th>Schrauben</th>
+<th>Zylinderstifte</th>
+</tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
+
+<script>
+const tbody = document.getElementById("tableBody");
+
+function parseNumber(v){ return v ? parseFloat(v.replace(",",".")) : null; }
+function formatNumber(n){ return (n===null||isNaN(n)) ? "" : n.toString().replace(".",","); }
+
+function addRow(item, serialCell=null, isSection=false){
+  const tr = document.createElement("tr");
+  if(isSection) tr.classList.add("section");
+
+  if(serialCell){ tr.appendChild(serialCell); }
+
+  const tdItem = document.createElement("td"); tdItem.textContent = item; tr.appendChild(tdItem);
+
+  const v=document.createElement("input");
+  const x=document.createElement("input");
+  const w=document.createElement("input"); w.readOnly=true;
+
+  function update(){
+    const vv=parseNumber(v.value);
+    const xx=parseNumber(x.value);
+    w.value = (vv!==null && xx!==null) ? formatNumber((vv-xx).toFixed(3)) : "";
+  }
+  v.addEventListener("input",update);
+  x.addEventListener("input",update);
+
+  const inputs=[v,x,w,document.createElement("input"),document.createElement("input"),document.createElement("input")];
+  inputs.forEach(inp=>{ const td=document.createElement("td"); td.appendChild(inp); tr.appendChild(td); });
+
+  for(let i=0;i<3;i++){ const td=document.createElement("td"); const cb=document.createElement("input"); cb.type="checkbox"; td.appendChild(cb); tr.appendChild(td); }
+
+  tbody.appendChild(tr);
+}
+
+// Aufbau: VL+VR teilen sich eine Seriennummer, HL+HR teilen sich eine
+for(let block=0; block<5; block++){
+  // VL + VR
+  let serial1=document.createElement("td");
+  serial1.rowSpan=2;
+  let inp1=document.createElement("input");
+  serial1.appendChild(inp1);
+
+  addRow("VL", serial1, true);
+  addRow("VR");
+
+  // HL + HR
+  let serial2=document.createElement("td");
+  serial2.rowSpan=2;
+  let inp2=document.createElement("input");
+  serial2.appendChild(inp2);
+
+  addRow("HL", serial2);
+  addRow("HR");
+}
+</script>
+
+</body>
+</html>
